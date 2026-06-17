@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartLife Pocket — e-ink DE Simulator</title>
+<style>
+  /* ============================================================
+     DESIGN TOKENS — from ui/DESIGN-SYSTEM.md
+     ============================================================ */
+  :root {
+    /* E-ink colors (paper feel) */
+    --color-bg: #F4F2EC;
+    --color-surface: #F4F2EC;
+    --color-ink: #1A1A1A;
+    --color-ink-muted: #6E6E68;
+    --color-ink-faint: #B4B4AE;
+    --color-accent: #2A4D7A;
+    --color-positive: #4A7A4A;
+    --color-warning: #8A6A2A;
+    --color-negative: #8A3A3A;
+    --color-link: #2A4D7A;
+    --color-divider: #C8C8C0;
+
+    /* OLED colors (deep black, soft green default) */
+    --oled-bg: #0A0A0A;
+    --oled-bg-glow: #142A14;
+    --oled-fg: #7FE57F;
+    --oled-fg-muted: #4A7A4A;
+    --oled-fg-faint: #2A4A2A;
+    --oled-amber: #E5C97F;
+    --oled-alert: #E57F7F;
+
+    /* Typography */
+    --type-display: 48px;
+    --type-h1: 24px;
+    --type-h2: 20px;
+    --type-h3: 18px;
+    --type-body: 16px;
+    --type-body-large: 18px;
+    --type-caption: 14px;
+    --type-mono: 14px;
+    --type-small: 12px;
+
+    /* Spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Bezel + device */
+    --bezel: 14px;
+    --bezel-color: #1F1F1F;
+    --device-radius: 32px;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #E2E0D8;
+    color: var(--color-ink);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .workspace {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 280px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    .workspace { grid-template-columns: 1fr; }
+  }
+
+  .device-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .device {
+    background: var(--bezel-color);
+    border-radius: var(--device-radius);
+    padding: var(--bezel);
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.08),
+      0 12px 32px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* E-INK SURFACE */
+  .e-ink {
+    width: 360px;
+    height: 540px;
+    background: var(--color-bg);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    color: var(--color-ink);
+    font-size: var(--type-body);
+    cursor: pointer;
+  }
+
+  .e-ink-content {
+    position: absolute;
+    inset: 0;
+    padding: 22px 22px 18px;
+    /* The content layer */
+  }
+
+  .e-ink-meta {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9px;
+    color: var(--color-ink-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* OLED ISLAND */
+  .oled {
+    width: 220px;
+    height: 70px;
+    background: var(--oled-bg);
+    border-radius: 4px;
+    align-self: center;
+    margin-top: 2px;
+    color: var(--oled-fg);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+  }
+
+  .oled-content {
+    position: absolute;
+    inset: 0;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .oled.dim { opacity: 0.35; }
+  .oled.awake { opacity: 1; }
+
+  /* ============================================================
+     SIDEBAR CONTROLS
+     ============================================================ */
+  .sidebar {
+    background: #FAFAF6;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .sidebar h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-muted);
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+
+  .sidebar .group { margin-bottom: 22px; }
+  .sidebar .group:last-child { margin-bottom: 0; }
+
+  .sidebar button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid var(--color-divider);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    color: var(--color-ink);
+    transition: background 0.1s;
+  }
+  .sidebar button:hover { background: #ECEAE2; }
+  .sidebar button.active {
+    background: var(--color-ink);
+    color: white;
+    border-color: var(--color-ink);
+  }
+
+  .sidebar select {
+    width: 100%;
+    padding: 6px 8px;
+    font: inherit;
+    font-size: 13px;
+    border: 1px solid var(--color-divider);
+    border-radius: 6px;
+    background: white;
+  }
+
+  .sidebar .note {
+    font-size: 12px;
+    color: var(--color-ink-muted);
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* ============================================================
+     E-INK REFRESH ANIMATIONS
+     ============================================================ */
+  /* Full refresh: full surface flash to white, content re-renders */
+  @keyframes full-refresh {
+    0%   { filter: brightness(1); }
+    15%  { filter: brightness(2.4) invert(0.05); }
+    35%  { filter: brightness(2.4) invert(0.05); }
+    50%  { filter: brightness(1.6); }
+    100% { filter: brightness(1); }
+  }
+
+  /* Partial refresh: subtle flicker, slight ghost trail */
+  @keyframes partial-refresh {
+    0%, 100% { opacity: 1; }
+    30%      { opacity: 0.5; }
+    60%      { opacity: 0.85; }
+  }
+
+  .e-ink.refreshing {
+    animation: full-refresh 1s ease-in-out;
+  }
+
+  .e-ink.partial-refreshing {
+    animation: partial-refresh 0.4s ease-in-out;
+  }
+
+  .e-ink.partial-refreshing::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--color-ink);
+    opacity: 0;
+    animation: ghost-flash 0.4s ease-in-out;
+    pointer-events: none;
+  }
+
+  @keyframes ghost-flash {
+    0%, 100% { opacity: 0; }
+    30%      { opacity: 0.08; }
+    60%      { opacity: 0.04; }
+  }
+
+  /* ============================================================
+     COMPONENT STYLES (SmartLife HIG)
+     ============================================================ */
+  .heading-display {
+    font-size: var(--type-display);
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .heading-h1 {
+    font-size: var(--type-h1);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .heading-h2 {
+    font-size: var(--type-h2);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .heading-h3 {
+    font-size: var(--type-h3);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .body {
+    font-size: var(--type-body);
+    line-height: 1.5;
+  }
+
+  .body-large {
+    font-size: var(--type-body-large);
+    line-height: 1.5;
+  }
+
+  .caption {
+    font-size: var(--type-caption);
+    color: var(--color-ink-muted);
+    line-height: 1.4;
+  }
+
+  .small {
+    font-size: var(--type-small);
+    color: var(--color-ink-muted);
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--color-divider);
+    margin: var(--space-3) 0;
+  }
+
+  .button {
+    display: inline-block;
+    border: 1px solid var(--color-ink);
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: var(--type-body);
+    color: var(--color-ink);
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+  }
+
+  .button.primary {
+    background: var(--color-ink);
+    color: var(--color-bg);
+  }
+
+  .button-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .button-row .button { flex: 1; }
+
+  /* Home screen */
+  .home-grid {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .home-grid .section { margin-top: var(--space-3); }
+  .home-grid .section:first-of-type { margin-top: 0; }
+  .home-grid .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-muted);
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+
+  .home-grid .app-row {
+    margin-top: auto;
+    padding-top: var(--space-3);
+  }
+
+  .home-grid .clock-block {
+    margin-bottom: 6px;
+  }
+
+  .home-grid .clock-block .heading-display {
+    font-size: 56px;
+  }
+
+  /* App grid */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 8px;
+    margin-top: var(--space-3);
+  }
+
+  .app-tile {
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .app-tile .icon {
+    width: 48px;
+    height: 48px;
+    border: 1.5px solid var(--color-ink);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+    font-size: 22px;
+    background: transparent;
+  }
+
+  .app-tile .label {
+    font-size: 11px;
+    color: var(--color-ink);
+  }
+
+  /* AI chat */
+  .chat-prompt {
+    color: var(--color-ink-muted);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    margin: 0 0 6px;
+  }
+
+  .chat-reply {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .chat-reply.muted {
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .chat-meta {
+    margin-top: var(--space-3);
+    font-size: 11px;
+    color: var(--color-ink-faint);
+  }
+
+  /* Settings */
+  .settings-section {
+    margin-bottom: var(--space-4);
+  }
+
+  .settings-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-muted);
+    margin: 0 0 8px;
+    font-weight: 700;
+  }
+
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-divider);
+    font-size: 15px;
+  }
+
+  .settings-row:last-child { border-bottom: none; }
+
+  .settings-row .value {
+    font-size: 13px;
+    color: var(--color-ink-muted);
+  }
+
+  .toggle {
+    width: 36px;
+    height: 20px;
+    background: var(--color-ink-faint);
+    border-radius: 999px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .toggle.on { background: var(--color-ink); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: left 0.15s;
+  }
+
+  .toggle.on::after { left: 18px; }
+
+  /* OLED content helpers */
+  .oled-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .oled-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--oled-fg);
+    vertical-align: middle;
+    animation: oled-blink 0.8s steps(2) infinite;
+  }
+
+  @keyframes oled-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+
+  .oled-wave {
+    display: inline-block;
+    color: var(--oled-fg);
+  }
+
+  /* Footer */
+  .device-footer {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--color-ink-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="workspace">
+
+  <div class="device-wrap">
+    <div class="device" role="region" aria-label="SmartLife Pocket device">
+      <div class="e-ink" id="e-ink">
+        <div class="e-ink-content" id="e-ink-content"></div>
+        <div class="e-ink-meta">e-ink · 360×540</div>
+      </div>
+      <div class="oled" id="oled">
+        <div class="oled-content" id="oled-content"></div>
+      </div>
+    </div>
+    <div class="device-footer">Pocket · 4" e-ink + 2.4" OLED</div>
+  </div>
+
+  <div class="sidebar">
+    <div class="group">
+      <h2>Screen</h2>
+      <button data-screen="lockscreen">Lockscreen</button>
+      <button data-screen="home" class="active">Home</button>
+      <button data-screen="appgrid">App Grid</button>
+      <button data-screen="ai-idle">AI Chat · Idle</button>
+      <button data-screen="ai-thinking">AI Chat · Thinking</button>
+      <button data-screen="ai-streaming">AI Chat · Streaming</button>
+      <button data-screen="ai-complete">AI Chat · Complete</button>
+      <button data-screen="voice">Voice Listening</button>
+      <button data-screen="settings">Settings</button>
+    </div>
+
+    <div class="group">
+      <h2>Refresh mode</h2>
+      <select id="refresh-mode">
+        <option value="full">Full (1s, no ghost)</option>
+        <option value="partial" selected>Partial (400ms, light ghost)</option>
+        <option value="spot">Spot (150ms, no ghost)</option>
+        <option value="none">None (instant)</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <h2>OLED</h2>
+      <button id="oled-toggle">Force dim / awake</button>
+    </div>
+
+    <div class="group">
+      <h2>Demo</h2>
+      <button id="auto-play">▶ Auto-play all screens</button>
+      <button id="demo-refresh">↻ Trigger refresh</button>
+    </div>
+
+    <div class="group">
+      <h2>Notes</h2>
+      <p class="note">
+        Click the e-ink surface to trigger a refresh in the selected mode. The OLED auto-wakes on active screens (AI thinking, streaming, voice). The design language is from <code>ui/DESIGN-SYSTEM.md</code>.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // STATE
+  // ============================================================
+  const state = {
+    screen: 'home',
+    refreshMode: 'partial',
+    oledForced: null, // null = auto, true = awake, false = dim
+  };
+
+  // ============================================================
+  // SCREEN CONTENT
+  // ============================================================
+  const screens = {
+    lockscreen: () => `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;">
+        <p class="caption" style="margin: 0 0 8px;">Tuesday, June 17</p>
+        <h1 class="heading-display" style="margin: 0; font-size: 72px; letter-spacing: -0.03em;">10:56</h1>
+        <p class="caption" style="margin: 4px 0 0;">AM</p>
+        <div style="margin-top: 24px;">
+          <p class="small" style="margin: 0;">3 notifications</p>
+        </div>
+        <div style="margin-top: auto; padding-bottom: 4px;">
+          <p class="small" style="margin: 0; color: var(--color-ink-muted);">● press select to unlock</p>
+        </div>
+      </div>
+    `,
+
+    home: () => `
+      <div class="home-grid">
+        <div class="clock-block">
+          <p class="caption" style="margin: 0 0 2px;">Tue · Jun 17</p>
+          <h1 class="heading-display" style="margin: 0;">10:56</h1>
+          <p class="caption" style="margin: 2px 0 0;">AM</p>
+        </div>
+
+        <div class="section">
+          <p style="margin: 0; font-size: 17px;">San Antonio  <span style="color: var(--color-ink-muted);">88°F  ☀</span></p>
+          <p class="caption" style="margin: 2px 0 0;">partly cloudy, light breeze</p>
+        </div>
+
+        <hr class="divider">
+
+        <div class="section">
+          <p class="section-label">Up next</p>
+          <p style="margin: 3px 0; font-size: 14px;">2:00 PM  Sprint planning</p>
+          <p style="margin: 3px 0; font-size: 14px;">4:30 PM  Pickup groceries</p>
+        </div>
+
+        <div class="section">
+          <p class="section-label">Home</p>
+          <p style="margin: 3px 0; font-size: 14px;">3 lights on · 1 door open</p>
+        </div>
+
+        <div class="app-row">
+          <button class="button primary" style="width: 100%;">▸ Ask the butler</button>
+        </div>
+      </div>
+    `,
+
+    appgrid: () => `
+      <h2 class="heading-h2" style="margin: 0 0 4px;">Apps</h2>
+      <p class="caption" style="margin: 0;">6 installed</p>
+      <div class="app-grid">
+        <div class="app-tile">
+          <div class="icon">📝</div>
+          <div class="label">Notes</div>
+        </div>
+        <div class="app-tile">
+          <div class="icon">💬</div>
+          <div class="label">Chat</div>
+        </div>
+        <div class="app-tile">
+          <div class="icon">🏠</div>
+          <div class="label">Home</div>
+        </div>
+        <div class="app-tile">
+          <div class="icon">📡</div>
+          <div class="label">Mesh</div>
+        </div>
+        <div class="app-tile">
+          <div class="icon">📚</div>
+          <div class="label">Books</div>
+        </div>
+        <div class="app-tile">
+          <div class="icon">⚙</div>
+          <div class="label">Settings</div>
+        </div>
+      </div>
+    `,
+
+    'ai-idle': () => `
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <p class="chat-prompt">&gt; summarize the meeting notes</p>
+        <hr class="divider">
+        <p class="chat-reply muted">(the butler is listening)</p>
+        <p class="caption" style="margin-top: auto; color: var(--color-ink-faint);">
+          Tap prompt to speak or type →
+        </p>
+      </div>
+    `,
+
+    'ai-thinking': () => `
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <p class="chat-prompt">&gt; summarize the meeting notes</p>
+        <hr class="divider">
+        <p class="chat-reply muted">thinking…</p>
+        <p class="caption" style="color: var(--color-ink-faint);">offline · local model · 1.2s</p>
+        <p class="caption" style="color: var(--color-ink-faint); margin-top: auto;">
+          tokens arriving on OLED ↓
+        </p>
+      </div>
+    `,
+
+    'ai-streaming': () => `
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <p class="chat-prompt">&gt; summarize the meeting notes</p>
+        <hr class="divider">
+        <p class="chat-reply muted">thinking…</p>
+        <p class="caption" style="color: var(--color-ink-faint);">
+          streaming — see OLED for live text
+        </p>
+        <p class="caption" style="color: var(--color-ink-faint); margin-top: auto;">
+          e-ink will refresh when complete ↓
+        </p>
+      </div>
+    `,
+
+    'ai-complete': () => `
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <p class="chat-prompt">&gt; summarize the meeting notes</p>
+        <hr class="divider">
+        <p class="chat-reply" style="font-size: 15px;">
+          Meeting covered the v1 BOM, enclosure timeline, and panel sourcing.
+        </p>
+        <p style="margin: 8px 0 0; font-size: 15px;">Action items:</p>
+        <p style="margin: 4px 0; font-size: 14px;">• confirm panel SKU</p>
+        <p style="margin: 4px 0; font-size: 14px;">• sketch enclosure language</p>
+        <p style="margin: 4px 0; font-size: 14px;">• ping friend about print bed</p>
+        <p class="chat-meta">42s · local · no offload</p>
+        <div style="margin-top: auto;">
+          <div class="button-row">
+            <button class="button">Ask follow-up</button>
+            <button class="button">Done</button>
+          </div>
+        </div>
+      </div>
+    `,
+
+    voice: () => `
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <p class="caption" style="margin: 0 0 8px; color: var(--color-ink-muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; font-weight: 700;">
+          Voice session
+        </p>
+        <p class="chat-reply" style="font-style: italic; font-size: 22px; line-height: 1.4;">
+          "summarize the meeting notes"
+        </p>
+        <p class="caption" style="margin-top: 12px;">
+          push-to-talk · hold side button
+        </p>
+        <p class="caption" style="color: var(--color-ink-faint); margin-top: auto;">
+          live waveform on OLED ↓
+        </p>
+      </div>
+    `,
+
+    settings: () => `
+      <h2 class="heading-h2" style="margin: 0 0 12px;">AI &amp; Sync</h2>
+      <div class="settings-section">
+        <div class="settings-row">
+          <span>Model</span>
+          <span class="value">Phi-3 mini</span>
+        </div>
+        <div class="settings-row">
+          <span>Offload to Home Base</span>
+          <span class="toggle on"></span>
+        </div>
+        <div class="settings-row">
+          <span>Voice</span>
+          <span class="toggle"></span>
+        </div>
+        <div class="settings-row">
+          <span>Sync (Syncthing)</span>
+          <span class="toggle on"></span>
+        </div>
+      </div>
+
+      <h2 class="heading-h2" style="margin: 16px 0 12px;">Display</h2>
+      <div class="settings-section">
+        <div class="settings-row">
+          <span>Dark mode</span>
+          <span class="toggle"></span>
+        </div>
+        <div class="settings-row">
+          <span>Large text</span>
+          <span class="toggle"></span>
+        </div>
+        <div class="settings-row">
+          <span>Reduce motion</span>
+          <span class="toggle on"></span>
+        </div>
+      </div>
+
+      <h2 class="heading-h2" style="margin: 16px 0 12px;">Power</h2>
+      <div class="settings-section">
+        <div class="settings-row">
+          <span>Sleep after</span>
+          <span class="value">30s</span>
+        </div>
+        <div class="settings-row">
+          <span>OLED auto-off</span>
+          <span class="toggle on"></span>
+        </div>
+      </div>
+    `,
+  };
+
+  // ============================================================
+  // OLED CONTENT (per screen)
+  // ============================================================
+  const oledScreens = {
+    lockscreen: {
+      autoDim: true,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg-muted);">12:00</span>
+          <span style="color: var(--oled-fg-muted);">78%</span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px; text-align: center;">
+          ☀
+        </div>
+      `,
+    },
+
+    home: {
+      autoDim: true,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg-muted);">78%</span>
+          <span style="color: var(--oled-fg-muted);">12:56</span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px; text-align: center;">
+          ▂▃▄▅█  ☀
+        </div>
+      `,
+    },
+
+    appgrid: {
+      autoDim: true,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg-muted);">78%</span>
+          <span style="color: var(--oled-fg-muted);">12:56</span>
+        </div>
+      `,
+    },
+
+    'ai-idle': {
+      autoDim: true,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg-muted);">78%</span>
+          <span style="color: var(--oled-fg-muted);">idle</span>
+        </div>
+      `,
+    },
+
+    'ai-thinking': {
+      autoDim: false,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg);">▒▒▒▒▒▒▒░░</span>
+          <span style="color: var(--oled-fg);">12/142</span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px; text-align: center;">
+          ETA ~2s
+        </div>
+      `,
+    },
+
+    'ai-streaming': {
+      autoDim: false,
+      content: `
+        <div style="color: var(--oled-fg); line-height: 1.3;">
+          Meeting covered the v1 BOM,
+        </div>
+        <div style="color: var(--oled-fg); line-height: 1.3;">
+          enclosure timeline, and pane<span class="oled-cursor"></span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px;">
+          87/142 tokens
+        </div>
+      `,
+    },
+
+    'ai-complete': {
+      autoDim: false,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg);">✓ done</span>
+          <span style="color: var(--oled-fg-muted);">42s</span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px; text-align: center;">
+          local · no offload
+        </div>
+      `,
+    },
+
+    voice: {
+      autoDim: false,
+      content: `
+        <div style="color: var(--oled-fg); text-align: center; font-size: 18px; line-height: 1; margin-top: 2px;">
+          ∿∿▂▃▅▇▅▃▂▁▂▃▅▇
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg); margin-top: 4px; text-align: center;">
+          ● listening
+        </div>
+      `,
+    },
+
+    settings: {
+      autoDim: true,
+      content: `
+        <div class="oled-row">
+          <span style="color: var(--oled-fg-muted);">78%</span>
+          <span style="color: var(--oled-fg-muted);">12:56</span>
+        </div>
+        <div style="font-size: 10px; color: var(--oled-fg-faint); margin-top: 4px; text-align: center;">
+          ⚙ settings
+        </div>
+      `,
+    },
+  };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+  function render() {
+    const screen = screens[state.screen];
+    document.getElementById('e-ink-content').innerHTML = screen();
+
+    const oled = oledScreens[state.screen];
+    document.getElementById('oled-content').innerHTML = oled.content;
+
+    // OLED dim/awake logic
+    let oledIsDim = oled.autoDim;
+    if (state.oledForced !== null) oledIsDim = !state.oledForced;
+    document.getElementById('oled').classList.toggle('dim', oledIsDim);
+    document.getElementById('oled').classList.toggle('awake', !oledIsDim);
+
+    // Update active sidebar button
+    document.querySelectorAll('[data-screen]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.screen === state.screen);
+    });
+  }
+
+  // ============================================================
+  // REFRESH
+  // ============================================================
+  function triggerRefresh() {
+    const eInk = document.getElementById('e-ink');
+    eInk.classList.remove('refreshing', 'partial-refreshing');
+    // Force reflow to restart animation
+    void eInk.offsetWidth;
+
+    const mode = state.refreshMode;
+    if (mode === 'full') {
+      eInk.classList.add('refreshing');
+      setTimeout(() => eInk.classList.remove('refreshing'), 1000);
+    } else if (mode === 'partial') {
+      eInk.classList.add('partial-refreshing');
+      setTimeout(() => eInk.classList.remove('partial-refreshing'), 400);
+    } else if (mode === 'spot') {
+      // No animation, just a subtle "blink"
+      eInk.style.transition = 'opacity 0.15s';
+      eInk.style.opacity = '0.6';
+      setTimeout(() => { eInk.style.opacity = '1'; }, 80);
+    } else {
+      // none: instant
+    }
+  }
+
+  // ============================================================
+  // EVENT HANDLERS
+  // ============================================================
+  document.querySelectorAll('[data-screen]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.screen = btn.dataset.screen;
+      state.oledForced = null; // reset OLED override on screen change
+      render();
+      triggerRefresh();
+    });
+  });
+
+  document.getElementById('refresh-mode').addEventListener('change', e => {
+    state.refreshMode = e.target.value;
+  });
+
+  document.getElementById('oled-toggle').addEventListener('click', () => {
+    if (state.oledForced === null) state.oledForced = false;
+    else if (state.oledForced === false) state.oledForced = true;
+    else state.oledForced = null;
+    render();
+  });
+
+  document.getElementById('auto-play').addEventListener('click', e => {
+    const order = ['lockscreen', 'home', 'appgrid', 'ai-idle', 'ai-thinking', 'ai-streaming', 'ai-complete', 'voice', 'settings'];
+    let i = 0;
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = '▶ Playing...';
+    const interval = setInterval(() => {
+      if (i >= order.length) {
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.textContent = '▶ Auto-play all screens';
+        return;
+      }
+      state.screen = order[i];
+      state.oledForced = null;
+      render();
+      triggerRefresh();
+      i++;
+    }, 2500);
+  });
+
+  document.getElementById('demo-refresh').addEventListener('click', () => {
+    triggerRefresh();
+  });
+
+  document.getElementById('e-ink').addEventListener('click', () => {
+    triggerRefresh();
+  });
+
+  // ============================================================
+  // INITIAL RENDER
+  // ============================================================
+  render();
+</script>
+
+</body>
+</html>

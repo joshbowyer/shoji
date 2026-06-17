@@ -1,0 +1,41 @@
+# Build artifacts
+build/
+build-*/
+*.o
+*.a
+*.so
+*.la
+*.lo
+*.deps/
+*.libs/
+
+# Meson
+meson-private/
+
+# OS files
+.DS_Store
+Thumbs.db
+*~
+
+# Editor backups
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Compiled C / GTK
+*.o.tmp
+
+# Python (for any Python scripts later)
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs / runtime
+*.log
+.cache/
+
+# Local environment files (none yet but reserve)
+.env
+.env.local
