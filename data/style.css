@@ -1,0 +1,73 @@
+/* Shoji design tokens — SmartLife HIG applied to GTK
+ *
+ * Source of truth: ui/DESIGN-SYSTEM.md
+ * This file is the GTK4 implementation of those tokens.
+ * When the tokens change in DESIGN-SYSTEM.md, update them here too.
+ */
+
+/* ----- App background (the space around the device) ----- */
+
+window {
+  background: #E2E0D8;
+}
+
+/* ----- E-ink surface (paper feel) ----- */
+
+.eink-surface {
+  background: #F4F2EC;
+  color: #1A1A1A;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.eink-header {
+  /* nothing — uses defaults */
+}
+
+.eink-time {
+  font-size: 56px;
+  font-weight: 700;
+  color: #1A1A1A;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.eink-caption {
+  font-size: 14px;
+  color: #6E6E68;
+}
+
+.eink-body {
+  font-size: 17px;
+  color: #1A1A1A;
+}
+
+.eink-button-primary {
+  background: #1A1A1A;
+  color: #F4F2EC;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 16px;
+}
+
+.eink-button-primary:hover {
+  background: #2A2A2A;
+}
+
+/* ----- OLED island (centered status bar) ----- */
+
+.oled-island {
+  background: #0A0A0A;
+  border-radius: 4px;
+  color: #7FE57F;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.oled-text {
+  color: #7FE57F;
+  font-family: monospace;
+  font-size: 13px;
+  opacity: 0.6;  /* dim by default */
+}

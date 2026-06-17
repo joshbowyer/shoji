@@ -28,17 +28,17 @@ sudo apt install -y build-essential meson ninja-build pkg-config \
   libgtk-4-dev libadwaita-1-dev libglib2.0-dev libsoup-3.0-dev \
   libgtk4-layer-shell-dev desktop-file-utils gettext blueprint-compiler
 
-# Build
+# Build (from the repo root)
 meson setup build
 meson compile -C build
-./build/smartlife-shell
+./build/shoji
 ```
 
 Full setup details in [`software/DEV-SETUP.md`](./software/DEV-SETUP.md).
 
 ## Status
 
-v0 design. The browser-based e-ink simulator is built (`ui/simulator.html`). The custom shell in C + libadwaita is the next concrete deliverable. Everything else is paused until a working shell exists.
+v0 design + hello-world app. The browser-based e-ink simulator is built (`ui/simulator.html`). The hello-world libadwaita app is the Tier 2.0 deliverable: a single Adw window with the fake e-ink surface + OLED island, design tokens applied. Build with `meson setup build && meson compile -C build && ./build/shoji`. Everything else is paused until a working shell exists.
 
 See [`ui/SHELL.md`](./ui/SHELL.md) for the full shell design.
 

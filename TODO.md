@@ -11,6 +11,7 @@
 - [x] Display strategy: e-ink main + 2.4" centered OLED island
 - [x] UI stack: custom shell on Phoc + squeekboard + libadwaita
 - [x] Tier 1: browser-based e-ink simulator
+- [~] Tier 2.0: hello-world libadwaita app (in progress)
 
 ## 1. Custom Shoji shell (the only active goal)
 
@@ -22,14 +23,15 @@
 - [x] Design tokens from `ui/DESIGN-SYSTEM.md`
 - [x] Auto-play for the full tour
 
-### Tier 2: Custom shell in libadwaita — NEXT
-- [ ] Hello-world libadwaita app (single window, Adw.NavigationView)
-- [ ] Design tokens as CSS in a stylesheet
-- [ ] "Fake e-ink surface" widget (Gtk.Box with paper-feel CSS, refresh animations)
-- [ ] "Fake OLED island" widget (centered below e-ink)
-- [ ] Build: `meson setup build && meson compile -C build`
-- [ ] Runs on GNOME3 (laptop) — no hardware needed
+### Tier 2: Custom shell in libadwaita — IN PROGRESS
+- [~] **Hello-world libadwaita app** (`src/main.c`, `data/style.css`, `meson.build`) — single Adw.ApplicationWindow, fake e-ink surface + OLED island, design tokens applied
 - [ ] Shell skeleton: lockscreen, home, app grid, settings
+- [ ] Refactor: split into widget files (`eink-surface.c`, `oled-island.c`, `shell-window.c`)
+- [ ] Add Adw.NavigationView (master/detail pattern for the home)
+- [ ] Multiple screens (home, lockscreen, app grid) as separate widgets
+- [ ] Click handlers for the AI prompt bar
+- [ ] Refresh animations (full/partial/spot) wired to the e-ink surface widget
+- [ ] OLED strip wake on "active" screens (AI thinking, streaming, voice)
 - [ ] PAM auth wiring
 - [ ] squeekboard integration (laptop: manual, Pinephone: real)
 

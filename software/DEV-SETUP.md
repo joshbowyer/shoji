@@ -85,10 +85,10 @@ That's it. ~150 lines of C + ~50 lines of CSS. Should take 30-60 minutes from a 
 **Build commands:**
 
 ```bash
-cd ~/src/smartlife-shell  # or wherever the project lives
+cd ~/workspace/smartlife-system/shoji  # the repo root
 meson setup build
 meson compile -C build
-./build/smartlife-shell
+./build/shoji
 ```
 
 **Expected result:** A regular GNOME3 window with the SmartLife design language in action, including the fake e-ink surface and OLED island. Validates the build, the design system, and the dev loop in one shot.
@@ -97,16 +97,13 @@ meson compile -C build
 
 ```bash
 # Edit
-$EDITOR src/smartlife-shell.c
+$EDITOR src/main.c
 
 # Rebuild (incremental, fast)
 meson compile -C build
 
-# Run (in dev environment with proper paths)
-meson devenv -C build -e ./smartlife-shell
-
-# Or just run the binary
-./build/smartlife-shell
+# Run
+./build/shoji
 ```
 
 **Typical loop: edit → build → run → see → edit. ~5 seconds per iteration.** Most of the time is thinking, not compiling.
@@ -141,6 +138,20 @@ When you're ready to build the actual shell (lockscreen, home, app grid), these 
 | Multi-output Wayland config | `phoc/src/` |
 | On-screen keyboard integration | `squeekboard` (any Phosh app shows the pattern) |
 | Touch + button input handling | `phosh/src/manager.c`, GTK event controllers |
+
+## Current source layout (hello-world)
+
+```
+shoji/
+├── src/
+│   └── main.c              # single file for v0; refactor as it grows
+├── data/
+│   └── style.css           # the SmartLife HIG applied to GTK
+├── meson.build             # build config
+└── (everything else is docs)
+```
+
+The binary is named `shoji`. The app ID is `org.shoji.Shell`.
 
 Read the reference code, copy the patterns, don't copy the code. Our shell will look nothing like Phosh's shell because e-ink is a different medium, but the plumbing patterns are the same.
 
