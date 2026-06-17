@@ -183,6 +183,14 @@ main (int argc, char *argv[])
 {
   AdwApplication *app = adw_application_new ("org.shoji.Shell",
                                               G_APPLICATION_DEFAULT_FLAGS);
+
+  /* Shoji is always light. The e-ink paper feel is the brand, not a mode.
+   * The e-ink device is light (paper), the OLED is dark (physical reality).
+   * Forcing light makes the window chrome match the design regardless of
+   * the user's system theme. This is per-app (doesn't affect other apps).
+   * Comment this out to follow the system color scheme instead. */
+  adw_application_set_color_scheme (app, ADW_COLOR_SCHEME_FORCE_LIGHT);
+
   g_signal_connect (app, "activate", G_CALLBACK (activate_cb), NULL);
   load_css ();
   return g_application_run (G_APPLICATION (app), argc, argv);
