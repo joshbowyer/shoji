@@ -248,6 +248,14 @@ E-ink has unique accessibility considerations. Default-on, opt-out.
 - **Large text mode**: scale type tokens 1.25x or 1.5x
 - **Reduce motion**: disables everything except full-refresh boundaries
 - **Screen reader**: linear content order; live regions for AI streaming and voice
+
+## 8.1 Theme policy
+
+**Shoji is always light.** The e-ink paper feel is the brand, not a mode. The e-ink device is physically light (paper), the OLED is physically dark. The window chrome, header bars, and surrounding UI must match the design regardless of the user's system theme.
+
+This is implemented via `adw_application_set_color_scheme(app, ADW_COLOR_SCHEME_FORCE_LIGHT)` in `src/main.c`. Per-app, doesn't affect the user's other apps.
+
+**To follow the system color scheme instead:** comment out the line in `main.c`. The design tokens will then need a dark mode variant, which is a future design problem.
 - **No-color-only signals**: status is conveyed by text + icon, not color alone
 - **Focus order is explicit**, not "tab through the DOM"
 
