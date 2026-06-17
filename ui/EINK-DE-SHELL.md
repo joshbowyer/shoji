@@ -1,8 +1,13 @@
-# SmartLife e-ink Desktop Environment — Shell Design
+# Shoji — SmartLife e-ink Desktop Environment
 
-> The custom e-ink-first shell that replaces Phosh's mobile shell. Built on Phoc + libadwaita + squeekboard; provides the lockscreen, home, app launcher, notifications, and settings that Phosh's shell would have provided, but designed from day one for an e-ink + OLED island display.
+> **Shoji** is the custom e-ink-first shell that replaces Phosh's mobile shell for the Pocket Companion. Built on Phoc + libadwaita + squeekboard; provides the lockscreen, home, app launcher, notifications, and settings that Phosh's shell would have provided, but designed from day one for an e-ink + OLED island display.
+> Repo: `github.com/joshbowyer/shoji`. Part of the broader SmartLife System (Pocket + Home Base + Commander).
 > **Status: v0 design (2026-06-17).** Architectural pivot — Phosh's shell is the wrong fit for e-ink. This is the new Sprint 0.
 > **Goal: a working e-ink DE, period. Everything else (AI stack, HA integration, mesh, security) is paused until this lands.**
+
+## The name
+
+**Shoji** (障子) are paper sliding screens in traditional Japanese architecture. Translucent, paper-thin, calm, used to softly separate spaces. E-ink is the same idea: a paper surface that gently filters light and information. The metaphor is precise — a paper screen for contemplative computing.
 
 ## Why we're building a custom shell
 

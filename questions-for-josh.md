@@ -57,12 +57,13 @@
 
 ---
 
-**Status as of 2026-06-17 (PIVOT):**
+**Status as of 2026-06-17 (PIVOT + NAMED):**
 
-- ✅ Working name: SmartLife System (default)
+- ✅ Working name: **SmartLife System** (umbrella, the three-device ecosystem) + **Shoji** (the e-ink DE, the Pocket's shell)
+- ✅ Repo: `github.com/joshbowyer/shoji` (created, SSH-pushed, main branch live)
 - ✅ First prototype: Pocket
 - ✅ Display strategy: hybrid (e-ink + 2.4" centered OLED island)
-- ✅ **UI shell: CUSTOM e-ink-first shell** (replaces Phosh shell). Phoc + squeekboard + libadwaita + Wayland + PAM kept as infrastructure. Full design in `ui/EINK-DE-SHELL.md`.
+- ✅ **UI shell: Shoji** — custom e-ink-first shell (replaces Phosh shell). Phoc + squeekboard + libadwaita + Wayland + PAM kept as infrastructure. Full design in `ui/EINK-DE-SHELL.md`.
 - ✅ Phase 1 hardware: Lyra Zero W, Waveshare 4.2" e-ink SPI, Waveshare 2.4" SH1106 OLED I²C
 - ✅ RMIO expansion connector spec'd
 - ✅ Pin config priority: mainline > `configfs` > `luckfox-config` > SDK
