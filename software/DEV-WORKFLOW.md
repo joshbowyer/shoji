@@ -1,6 +1,6 @@
-# SmartLife System — Development Workflow
+# Shoji — Development Workflow
 
-> How we build, test, and ship SmartLife software. The dev loop is designed so 90% of the work happens on the laptop with no Lyra-specific hardware, with periodic validation on Pinephone and Lyra.
+> How we build, test, and ship Shoji. The dev loop is designed so 90% of the work happens on the laptop with no Lyra-specific hardware, with periodic validation on Pinephone and Lyra.
 > Status: v0 (2026-06-17). Lean workflow, no calendar.
 
 ## The 3-tier dev loop
@@ -161,7 +161,7 @@ Only when you want **SmartLife-specific behavior** (e-ink refresh on save, OLED 
 
 ## See also
 
-- `software/STACK-DECISION.md` — Phosh + phoc + squeekboard as the UI stack
+- `software/STACK.md` — Phosh + phoc + squeekboard as the UI stack
 - `research/lyra-os-landscape.md` — OS options
 - `research/lyra-platform-tooling.md` — `luckfox-config` and dynamic device tree
 - `hardware/RMIO.md` — expansion connector

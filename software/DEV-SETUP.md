@@ -1,11 +1,11 @@
-# SmartLife System — Dev Setup
+# Shoji — Dev Setup
 
-> Concrete setup for building the custom e-ink shell. System packages, reference repos, the minimal "hello world" plan, the dev loop, and when to move to hardware.
+> Concrete setup for building the Shoji e-ink shell. System packages, reference repos, the minimal "hello world" plan, the dev loop, and when to move to hardware.
 > Status: v0 (2026-06-17). The companion to `software/DEV-WORKFLOW.md` (conceptual) — this is the *how*.
 
 ## What we're building
 
-The custom e-ink-first shell (per `ui/EINK-DE-SHELL.md`) as a single **libadwaita app** that runs on your laptop in GNOME3 today, on Pinephone (real Phosh) tomorrow, and on Lyra Zero W (real e-ink + OLED) eventually.
+The custom e-ink-first shell (per `ui/SHELL.md`) as a single **libadwaita app** that runs on your laptop in GNOME3 today, on Pinephone (real Phosh) tomorrow, and on Lyra Zero W (real e-ink + OLED) eventually.
 
 The shell uses a **"fake e-ink surface" widget** for laptop dev — a styled container that mocks the real e-ink paper feel and refresh animations. The shell logic is real; the display renderer is swappable. When we move to real hardware, the fake widget is replaced with a real e-ink driver and the shell code doesn't change.
 
@@ -176,11 +176,11 @@ This project is in git from day one. See `software/DEV-WORKFLOW.md` for the conc
 
 ## See also
 
-- `ui/EINK-DE-SHELL.md` — the custom shell design (the active goal)
+- `ui/SHELL.md` — the custom shell design (the active goal)
 - `ui/DESIGN-SYSTEM.md` — the design tokens (the shell consumes them)
 - `ui/DISPLAY-STRATEGY.md` — e-ink + OLED split
 - `ui/DEVICE-MOCKUP.md` — visual concept
 - `ui/simulator.html` — the browser-based e-ink simulator (the design's first living form)
 - `software/DEV-WORKFLOW.md` — the conceptual 3-tier dev loop (laptop → Pinephone → Lyra)
-- `software/STACK-DECISION.md` — Phosh infra + custom shell stack
+- `software/STACK.md` — Phosh infra + custom shell stack
 - `README.md` — project status

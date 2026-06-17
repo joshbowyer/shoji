@@ -210,5 +210,5 @@ The additions:
 - `ui/DESIGN-SYSTEM.md` — design language (still applies)
 - `ui/DISPLAY-STRATEGY.md` — e-ink + OLED split (still applies)
 - `ui/DEVICE-MOCKUP.md` — visual concept for the device (still applies)
-- `software/STACK-DECISION.md` — updated to reflect Option B
-- `questions-for-josh.md` — open decisions
+- `software/STACK.md` — updated to reflect Option B
+- `questions.md` — open decisions

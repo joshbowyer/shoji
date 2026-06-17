@@ -1,7 +1,7 @@
-# SmartLife System — UI Stack Decision
+# Shoji — UI Stack Decision
 
-> What runs the Pocket's UI. The base shell, the display profile, the hardware, the boot flow.
-> **Status: v1 (2026-06-17).** **Major pivot: Phosh's shell is the wrong fit for e-ink. We keep Phosh's infrastructure (phoc, squeekboard, libadwaita, PAM, Wayland) and build a custom e-ink-first shell.** Full design in `ui/EINK-DE-SHELL.md`. Everything else (AI, HA, mesh, security) paused until the DE works.
+> What runs the Pocket's UI. The base shell, the display profile, the hardware, the boot flow. This is the **Shoji** stack.
+> **Status: v1 (2026-06-17).** **Major pivot: Phosh's shell is the wrong fit for e-ink. We keep Phosh's infrastructure (phoc, squeekboard, libadwaita, PAM, Wayland) and build a custom e-ink-first shell — Shoji.** Full design in `ui/SHELL.md`.
 
 ## TL;DR
 
@@ -9,7 +9,7 @@
 |---|---|---|
 | **Wayland compositor** | **phoc** | Standard Wayland, supports multi-output (e-ink + OLED) |
 | **On-screen keyboard** | **squeekboard** | Works with Wayland, part of the Phosh ecosystem |
-| **Shell** | **Custom e-ink-first shell** (replaces Phosh shell) | Phosh's shell animations are wrong for e-ink; a custom shell designed for the medium is the right call. See `ui/EINK-DE-SHELL.md`. |
+| **Shell** | **Custom e-ink-first shell** (replaces Phosh shell) | Phosh's shell animations are wrong for e-ink; a custom shell designed for the medium is the right call. See `ui/SHELL.md`. |
 | **Widget toolkit** | **GTK4 + libadwaita** | GNOME design system, our design language maps 1:1 |
 | **Display manager** | **None** — boot directly to custom shell via systemd | Single-user pocket device doesn't need a greeter |
 | **Lock screen** | **Custom** (replaces Phosh's built-in) | Full-refresh on wake, no fade, no slide, just calm image + button to unlock |
@@ -199,15 +199,15 @@ M0 co-processor handles wake sources (button, alarm, mesh event) when the rest o
 - **Phase 1 vs Phase 2 e-ink timing** — when do we swap SPI → MIPI DSI? After software/UX validation, or earlier?
 - **Phosh version** — latest stable, or pin a version compatible with our Lyra port?
 - **Fingerprint sensor on Phase 1** or defer to Phase 2?
-- **Other hardware add-ons** (LoRa, IR, BT keyboard) — when to integrate? Q8 in questions-for-josh.md.
+- **Other hardware add-ons** (LoRa, IR, BT keyboard) — when to integrate? Q8 in questions.md.
 - **Pinephone community connection** — worth reaching out to Mobian / postmarketOS folks early for e-ink display profile work?
 
 ## See also
 
-- `ui/EINK-DE-SHELL.md` — **the custom e-ink-first shell design** (the heart of the project now)
+- `ui/SHELL.md` — **the custom e-ink-first shell design** (the heart of the project now)
 - `ui/DESIGN-SYSTEM.md` — design language (still applies)
 - `ui/DISPLAY-STRATEGY.md` — e-ink + OLED hybrid decision (still applies)
 - `ui/DEVICE-MOCKUP.md` — visual concept for the device (still applies)
 - `research/lyra-os-landscape.md` — OS options (mPWRD-OS ranked #1)
 - `research/lyra-platform-tooling.md` — pin config + device tree
-- `questions-for-josh.md` — open decisions
+- `questions.md` — open decisions
