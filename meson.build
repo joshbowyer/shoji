@@ -22,4 +22,5 @@ install_data(css, install_dir : get_option('datadir') / 'shoji' / 'css')
 executable('shoji', sources,
   dependencies : [gtk_dep, adwaita_dep, glib_dep],
   install : true,
+  c_args : ['-Wno-unused-parameter'],
 )

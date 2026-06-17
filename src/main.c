@@ -156,7 +156,7 @@ make_oled_island (void)
 static void
 activate_cb (GtkApplication *app, gpointer user_data)
 {
-  GtkWidget *window = adw_application_window_new (ADW_APPLICATION (app));
+  GtkWidget *window = adw_application_window_new (GTK_APPLICATION (app));
   gtk_window_set_default_size (GTK_WINDOW (window), 520, 760);
   gtk_window_set_title (GTK_WINDOW (window), "Shoji");
   adw_application_window_set_content (ADW_APPLICATION_WINDOW (window),
