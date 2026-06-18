@@ -156,6 +156,28 @@ make_oled_island (void)
 static void
 activate_cb (GtkApplication *app, gpointer user_data)
 {
+  /* All GTK-dependent setup goes here, not in main(). The app is fully
+   * initialized by the time this signal fires: gtk_init() has run, a
+   * GdkDisplay exists, and AdwStyleManager is ready. Doing any of this
+   * in main() before g_application_run() crashes with:
+   *   "gdk_display_manager_get() was called before gtk_init()"
+   *   "gdk_style_context_add_provider_for_display: assertion failed"
+   */
+
+  /* Shoji is always light. The e-ink paper feel is the brand, not a mode.
+   * The e-ink device is light (paper), the OLED is dark (physical reality).
+   * Forcing light makes the window chrome match the design regardless of
+   * the user's system theme.
+   *
+   * Using adw_style_manager (not adw_application) for libadwaita compat —
+   * the per-app API requires libadwaita >= 1.4. The StyleManager version
+   * is global; when we require 1.4, switch to adw_application_set_color_scheme
+   * for per-app forcing.
+   *
+   * Comment this out to follow the system color scheme instead. */
+  adw_style_manager_set_color_scheme (adw_style_manager_get_default (),
+                                       ADW_COLOR_SCHEME_FORCE_LIGHT);
+
   /* CSS must be loaded after the app is activated, because that's when a
    * GdkDisplay exists. gtk_style_context_add_provider_for_display() needs
    * a real display; calling it before the app activates passes NULL. */
@@ -186,25 +208,11 @@ activate_cb (GtkApplication *app, gpointer user_data)
 int
 main (int argc, char *argv[])
 {
+  /* main() is intentionally minimal: create the app, connect signals, run.
+   * All GTK-dependent setup (style manager, CSS, window) happens in
+   * activate_cb, which fires AFTER gtk_init() has run. */
   AdwApplication *app = adw_application_new ("org.shoji.Shell",
                                               G_APPLICATION_DEFAULT_FLAGS);
-
-  /* Shoji is always light. The e-ink paper feel is the brand, not a mode.
-   * The e-ink device is light (paper), the OLED is dark (physical reality).
-   * Forcing light makes the window chrome match the design regardless of
-   * the user's system theme.
-   *
-   * NOTE: using the StyleManager API (not adw_application_set_color_scheme)
-   * because that function requires libadwaita >= 1.4. The StyleManager API
-   * is global — it affects all Adw apps while this one is running — but for
-   * a hello-world that's fine. When we move to libadwaita >= 1.4 (most
-   * distros have it by now), switch to adw_application_set_color_scheme()
-   * for per-app forcing.
-   *
-   * Comment this out to follow the system color scheme instead. */
-  adw_style_manager_set_color_scheme (adw_style_manager_get_default (),
-                                       ADW_COLOR_SCHEME_FORCE_LIGHT);
-
   g_signal_connect (app, "activate", G_CALLBACK (activate_cb), NULL);
   return g_application_run (G_APPLICATION (app), argc, argv);
 }
